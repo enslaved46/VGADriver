@@ -1,0 +1,11 @@
+vivadoRun/
+vivado.*
+vivado_*.*
+vivadoVga/
+*.bak
+oldSrc/
+simRun/
+src/*.*.*.*
+tb/*.*.*.*
+runDir/
+*.*.swp
