@@ -34,8 +34,8 @@ cmp:
 	@$(GHDL) -e  --workdir=$(SIM_DIR) $(FLAGS) vgaTb
 
 run:
-	$(GHDL) -r $ --workdir=$(SIM_DIR) $(FLAGS) vgaTb --wave=wave.ghw --stop-time=1us
+	$(GHDL) -r $ --workdir=$(SIM_DIR) $(FLAGS) vgaTb --wave=wave.ghw --stop-time=10ms
 	mv wave.ghw $(SIM_DIR)
 
 clean :
-	rm -r $(SIM_DIR)
+	rm -rf $(SIM_DIR)
