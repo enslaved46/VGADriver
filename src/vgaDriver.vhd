@@ -2,6 +2,9 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
+library std;
+  use std.textio.all;
+
 entity vgaDriver is
   generic (
     CLK_FREQ        : real     := 100.0e6
@@ -52,7 +55,10 @@ architecture rtl of vgaDriver is
   alias    V_V_A is VERTICAL_VISIBLE_AREA;
   alias    V_F_P is VERTICAL_FRONT_PORCH;
   alias    V_S_P is VERTICAL_SYNC_PULSE;
-  
+ 
+ -----------------------------------
+ -- Find number of bits needed
+ -----------------------------------
   function log2Fn (x : positive) return natural is
     variable i : natural;
    begin
@@ -63,22 +69,22 @@ architecture rtl of vgaDriver is
       return i;
    end function;
 
-  signal  vSyncCntrR    : unsigned (log2Fn (HORIZONTAL_WHOLE_LINE) -1 downto 0);
-  signal  hSyncCntrR    : unsigned (log2Fn (VERTICAL_WHOLE_LINE) -1 downto 0);
-  signal  vSyncPulseR   : std_logic;
-  signal  hSyncPulseR   : std_logic;
-  signal  displayEnR    : std_logic;
-  signal  xPixelCntrR   : unsigned(log2Fn(HORIZONTAL_VISIBLE_AREA)-1 downto 0);
-  signal  yPixelCntrR   : unsigned(log2Fn(VERTICAL_VISIBLE_AREA)-1 downto 0);
+  signal  vSyncCntrR       : unsigned (log2Fn (HORIZONTAL_WHOLE_LINE) -1 downto 0);
+  signal  hSyncCntrR       : unsigned (log2Fn (VERTICAL_WHOLE_LINE) -1 downto 0);
+  signal  vSyncPulseR      : std_logic;
+  signal  hSyncPulseR      : std_logic;
+  signal  displayEnR       : std_logic;
+  signal  xPixelCntrR      : unsigned(log2Fn(HORIZONTAL_VISIBLE_AREA)-1 downto 0);
+  signal  yPixelCntrR      : unsigned(log2Fn(VERTICAL_VISIBLE_AREA)-1 downto 0);
 
-  signal  vgaRedR      : std_logic_vector(3 downto 0);
-  signal  vgaBlueR     : std_logic_vector(3 downto 0);
-  signal  vgaGreenR    : std_logic_vector(3 downto 0);
-  signal  displayCntrR : unsigned(3 downto 0);
-  signal  vertialSyncCntEn : std_logic;
+  signal  vgaRedR          : std_logic_vector(3 downto 0);
+  signal  vgaBlueR         : std_logic_vector(3 downto 0);
+  signal  vgaGreenR        : std_logic_vector(3 downto 0);
+  signal  displayCntrR     : unsigned(3 downto 0);
+  signal  vSyncCntrEn : std_logic;
 
-  constant MAX_H_SYNC_ON :natural := H_B_P + H_V_A + H_F_P-1;
-  constant MAX_V_SYNC_ON :natural := V_B_P + V_V_A + V_F_P-1;
+  constant MAX_H_SYNC_ON   : natural := H_B_P + H_V_A + H_F_P - 1;
+  constant MAX_V_SYNC_ON   : natural := V_B_P + V_V_A + V_F_P - 1;
   -- signal sixtyHz : std_logic;
 
 begin
@@ -90,7 +96,10 @@ begin
    vgaGreenOut   <= vgaGreenIn when displayEnR = '1' else X"0";
    vSyncPulseOut <= vSyncPulseR;
    hSyncPulseOut <= hSyncPulseR;
-
+ 
+ -----------------------------------
+ -- create 25 Mhz Clk, could use FF
+ -----------------------------------
   get25MhzClk : entity work.pulseGen(rtl)
     generic map(
       FREQUENCY_REQ   => integer(25.0e6),
@@ -101,134 +110,187 @@ begin
       sysRstIn        => sysRstIn,
       enCntrIn        => '1',
       pulseOut        => pixelClkEn);
-
-  -- get60HzClk : entity work.pulseGen(rtl)
-  --   generic map(
-  --     FREQUENCY_REQ   => integer(1.0e6),
-  --     CLK_FREQ        => CLK_FREQ,
-  --     SAMPLING_RATE   => 1)
-  --   port map (
-  --     sysClkIn        => sysClkIn,
-  --     sysRstIn        => sysRstIn,
-  --     enCntrIn        => '1',
-  --     pulseOut        => sixtyHz);
-
+ 
+ -----------------------------------
+ -- H Sync Cntr
+ -----------------------------------
   hSyncCntrProc : process(sysClkIn)
   begin
-    if( rising_edge(sysClkIn)) then
+    if(rising_edge(sysClkIn)) then
       if(sysRstIn /= '1') then
         hSyncCntrR <= (others => '0');
-        -- vertialSyncCntEn <= '0';
-       -- hSyncPulseR <= '0';
       else
         if(pixelClkEn = '1') then
-          -- vertialSyncCntEn <= '0';
           if(hSyncCntrR = to_unsigned(H_W_L -1, hSyncCntrR'length)) then
             hSyncCntrR <= (others => '0');
---            vertialSyncCntEn <= '1';  -- this creates a clk cycle delay in Vcount
           else 
             hSyncCntrR <= hSyncCntrR +1;
-           -- if(hSyncCntrR < (to_unsigned(MAX_H_SYNC_ON, hSyncCntrR'length))) then
-           --   hSyncPulseR <= '1';
-           -- elsif (hSyncCntrR = (to_unsigned(MAX_H_SYNC_ON, hSyncCntrR'length))) or (hSyncCntrR < (to_unsigned(H_W_L, hSyncCntrR'length))) then
-           --   hSyncPulseR <= '0';
-           -- end if;
           end if;
         end if;
       end if;
     end if;
   end process hSyncCntrProc;
 
-  hSyncPulseR <= '1' when (hSyncCntrR <= MAX_H_SYNC_ON-1) else '0';
-
+-- Hsync Timing
 --0  47          687         703          799
 -------------------------------      799    -0------------     
 --      |            |          |            | BP
 --BP_48 48  DA_640  688  FP_16 704---SP_96-800 
 
+ ----------------------------------------------------------
+ -- Turn on the H SYN Signal until Max Threshold is reached
+ ----------------------------------------------------------
+  hSyncPulseR <= '1' when (hSyncCntrR < MAX_H_SYNC_ON) else '0';
 
+-- hsync Timing, transformed
 --  0       95 96------------------------799--0 
 --  |---SP--|                             |                              |
                                              ---------
- --hSyncPulseR <= '0' when (hSyncCntrR = MAX_H_SYNC_ON) and
+ -- hSyncPulseR <= '0' when (hSyncCntrR = MAX_H_SYNC_ON) and
                          --(hSyncCntrR < H_W_L-1) else '1';
 
-  -- hSyncPulseProc : process(sysClkIn)
-  -- begin
-  --   if( rising_edge(sysClkIn)) then
-  --     if(sysRstIn /= '1') then
-  --       hSyncPulseR <= '0';
-  --     else
-  --       if(pixelClkEn = '1') then
-  --         if(hSyncCntrR < (to_unsigned(MAX_H_SYNC_ON, hSyncCntrR'length))) then
-  --         --  hSyncPulseR <= '1';
-  --         else 
-  --         --  hSyncPulseR <= '0';
-  --         end if;
-  --       end if;
-  --     end if;
-  --   end if;
-  -- end process hSyncPulseProc;
+  ----------------------------------------------------------
+  -- Enable Vsync cntr when H Sync Max Cnt is reached
+  ----------------------------------------------------------
+  vSyncCntrEn <= '1' when (hSyncCntrR = to_unsigned(H_W_L -1, hSyncCntrR'length)) else '0';
 
-  vertialSyncCntEn <= '1' when (hSyncCntrR = to_unsigned(H_W_L -1, hSyncCntrR'length)) else '0';
-
+  -----------------------------------
+  -- V Sync Cntr Process
+  -----------------------------------
   vSyncCntrProc : process(sysClkIn)
   begin
     if( rising_edge(sysClkIn)) then
       if(sysRstIn /= '1') then
         vSyncCntrR <= (others => '0' );
       elsif(pixelClkEn = '1') then
-        if (vertialSyncCntEn = '1') then
-          if(vSyncCntrR = to_unsigned(VERTICAL_WHOLE_LINE-1, vSyncCntrR'length)) then
+        if (vSyncCntrEn = '1') then
+          if(vSyncCntrR = to_unsigned(V_W_L - 1, vSyncCntrR'length)) then
             vSyncCntrR <= (others => '0');
-          else 
-            vSyncCntrR <= vSyncCntrR +1;
+          else
+            vSyncCntrR <= vSyncCntrR + 1;
           end if;
         end if;
       end if;
     end if;
   end process vSyncCntrProc;
 
+-- Vsync Timing
  --0    32          512        522     524 
 --------------------------------       -------------------    
 --      |            |          |      |
 --BP_33    DA_480       FP_10   --SP_2-- 
 
-vSyncPulseR <= '1' when (hSyncCntrR <= MAX_V_SYNC_ON) else '0';
--- 
---  vSyncPulseProc : process(sysClkIn)
---  begin
---    if( rising_edge(sysClkIn)) then
---      if(sysRstIn /= '1') then
---        vSyncPulseR <= '0';
---      else
---        if (pixelClkEn = '1') then
---            if((vSyncCntrR < to_unsigned(V_B_P + V_V_A + V_F_P -1, vSyncCntrR'length))) then
---              vSyncPulseR <= '1';
---            else 
---              vSyncPulseR <= '0';
---            end if;
---          -- end if;
---        end if;
---      end if;
---    end if;
---  end process vSyncPulseProc;
+  ----------------------------------------------------------
+  -- Turn on the V SYNC Signal until Max Threshold is reached
+  ----------------------------------------------------------
+  vSyncPulseR <= '1' when (hSyncCntrR < MAX_V_SYNC_ON) else '0';
 
-  vgaDispayProc : process(sysClkIn)
+  -----------------------------------
+  -- track display area in the screen, cycle delay
+  -----------------------------------
+ -- vgaDispayProc : process(sysClkIn)
+ -- begin
+ --   if( rising_edge(sysClkIn)) then
+ --     if(sysRstIn /= '1') then
+ --       displayEnR <=  '0';
+ --     elsif (pixelClkEn = '1') then
+ --       if((vSyncCntrR > (to_unsigned(V_B_P - 1, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A - 1 , vSyncCntrR'length)) and
+ --          (hSyncCntrR > (to_unsigned(H_B_P - 1, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A - 1 , vSyncCntrR'length))) then
+ --         displayEnR <=  '1'; 
+ --       else 
+--          displayEnR <=  '0';
+ --       end if;
+ --     end if;
+ --   end if;
+ -- end process vgaDispayProc;
+
+  -----------------------------------
+  -- track display area in the screen, cycle delay
+  -----------------------------------
+  displayEnR <=  '1' when ((vSyncCntrR > (to_unsigned(V_B_P - 1, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A - 1 , vSyncCntrR'length)) and 
+		           (hSyncCntrR > (to_unsigned(H_B_P - 1, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A - 1 , vSyncCntrR'length))) else 
+                 '0';
+
+  -- synopsys translate_off
+--  process(sysRstIn, displayEnR, hSyncPulseR, vSyncPulseR, hSyncCntrR, vSyncCntrR, xPixelCntrR, yPixelCntrR)
+  process(hSyncCntrR, vSyncCntrR)
+variable l : line;
+    begin
+     -- write (l, String'("Hello world!"));v
+     -- if(displayEnR = '1') then
+     -- write (l, String'("RST IN : "));
+     -- write(l, std_logic'image(sysRstIn));
+     -- write (l, String'("        "));
+
+     -- write (l, String'("MAX H Sync On: "));
+     -- write(l, integer'image(MAX_H_SYNC_ON));
+     -- write (l, String'("        "));
+      
+      write (l, String'("H sync Cntr: "));
+      write(l, to_integer(hSyncCntrR));
+      write (l, String'("        "));
+      
+      write (l, String'("H Sync Pulse : "));
+      write(l, std_logic'image(hSyncPulseOut));
+      write (l, String'("        "));
+
+      write (l, String'("V Sync Cnt En : "));
+      write(l, std_logic'image(vSyncCntrEn));
+      write (l, String'("        "));
+
+
+      --write (l, String'("MAX V_Sync On: "));
+     -- write(l, integer'image(MAX_V_SYNC_ON));
+      --write (l, String'("        "));
+     
+      write(l, String'("V sync Cntr: "));
+      write(l, to_integer(vSyncCntrR));
+      write (l, String'("        "));
+      write(l, String'("V Sync Pulse : "));
+      write(l, std_logic'image(vSyncPulseR));
+      write (l, String'("        "));
+      
+      write(l, String'("Display En : "));
+      write(l, std_logic'image(displayEnR));
+      write (l, String'("        "));     
+
+      write(l, String'("X Pxle : "));
+      write(l, to_integer(xPixelCntrR));
+      write (l, String'("        "));
+      write(l, String'("Y Pxle : "));
+      write(l, to_integer(yPixelCntrR));
+    
+      writeline (output, l);
+    -- end if;
+    -- wait;
+   end process;
+-- synopsys translate_on
+
+ -----------------------------------
+ --
+ -----------------------------------
+ pixelTrakrProc : process(sysRstIn, displayEnR, pixelClkEn)
   begin
-    if( rising_edge(sysClkIn)) then
+--    if( rising_edge(sysClkIn)) then
       if(sysRstIn /= '1') then
-        displayEnR <=  '0';
-      elsif (pixelClkEn = '1') then
-        if((vSyncCntrR > (to_unsigned(V_B_P, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A, vSyncCntrR'length)) and
-           (hSyncCntrR > (to_unsigned(H_B_P, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A, vSyncCntrR'length))) then
-          displayEnR <=  '1'; 
+        xPixelCntrR  <= (others => '0');
+        yPixelCntrR  <= (others => '0');
+        displayCntrR <= (others => '0');
+      elsif(displayEnR = '1' and pixelClkEn = '1') then
+        if(xPixelCntrR = to_unsigned(H_V_A - 1, xPixelCntrR'length)) then
+          yPixelCntrR <= yPixelCntrR + 1;
+	  xPixelCntrR <= (others => '0');
+        elsif(yPixelCntrR = to_unsigned(V_V_A - 1, yPixelCntrR'length )) then
+          yPixelCntrR <= (others => '0');
+          --  displayCntrR<= displayCntrR + 1;
         else 
-          displayEnR <=  '0';
+          xPixelCntrR <= xPixelCntrR + 1;
         end if;
-      end if;
-    end if;
-  end process vgaDispayProc;
+     end if;
+--    end if;
+  end process pixelTrakrProc;
+
+end architecture rtl;
 
 --  vgaRedR   <= X"1" when (displayCntrR  = X"0") else
 --               X"1" when (displayCntrR  = X"1") else
@@ -242,27 +304,5 @@ vSyncPulseR <= '1' when (hSyncCntrR <= MAX_V_SYNC_ON) else '0';
 --               X"0" when (displayCntrR  = X"1") else
 --               X"0" when (displayCntrR  = X"2") else
 --               X"1" when (displayCntrR  = X"3");
-  pixelTrakrProc : process(sysClkIn)
-  begin
-    if( rising_edge(sysClkIn)) then
-      if(sysRstIn /= '1') then
-        xPixelCntrR  <= (others => '0');
-        yPixelCntrR  <= (others => '0');
-        displayCntrR <= (others => '0');
-      elsif(displayEnR = '1') then
-        if(yPixelCntrR = to_unsigned(VERTICAL_VISIBLE_AREA-1,yPixelCntrR'length )) then
-          yPixelCntrR <= (others => '0');
-          displayCntrR<= displayCntrR + 1;
-        else 
-          yPixelCntrR <= yPixelCntrR +1;
-        end if;
-        if(xPixelCntrR = to_unsigned(HORIZONTAL_VISIBLE_AREA-1,xPixelCntrR'length)) then
-          xPixelCntrR <= (others => '0');
-        else 
-          xPixelCntrR <= xPixelCntrR +1;
-        end if;
-      end if;
-    end if;
-  end process pixelTrakrProc;
 
-end architecture rtl;
+
