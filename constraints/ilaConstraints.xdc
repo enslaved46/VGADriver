@@ -10,25 +10,12 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {sy
 
 ##Switches
 
-set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[0] }]; #IO_L24N_T3_RS0_15 Sch=sw[0]
-set_property -dict { PACKAGE_PIN L16   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[1] }]; #IO_L3N_T0_DQS_EMCCLK_14 Sch=sw[1]
-set_property -dict { PACKAGE_PIN M13   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[2] }]; #IO_L6N_T0_D08_VREF_14 Sch=sw[2]
-set_property -dict { PACKAGE_PIN R15   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[3] }]; #IO_L13N_T2_MRCC_14 Sch=sw[3]
-set_property -dict { PACKAGE_PIN R17   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[0] }]; #IO_L12N_T1_MRCC_14 Sch=sw[4]
-set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[1] }]; #IO_L7N_T1_D10_14 Sch=sw[5]
-set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[2] }]; #IO_L17N_T2_A13_D29_14 Sch=sw[6]
-set_property -dict { PACKAGE_PIN R13   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[3] }]; #IO_L5N_T0_D07_14 Sch=sw[7]
-set_property -dict { PACKAGE_PIN T8    IOSTANDARD LVCMOS18 } [get_ports { vgaGreenIn[0] }]; #IO_L24N_T3_34 Sch=sw[8]
-set_property -dict { PACKAGE_PIN U8    IOSTANDARD LVCMOS18 } [get_ports { vgaGreenIn[1] }]; #IO_25_34 Sch=sw[9]
-set_property -dict { PACKAGE_PIN R16   IOSTANDARD LVCMOS33 } [get_ports { vgaGreenIn[2] }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=sw[10]
-set_property -dict { PACKAGE_PIN T13   IOSTANDARD LVCMOS33 } [get_ports { vgaGreenIn[3] }]; #IO_L23P_T3_A03_D19_14 Sch=sw[11]
-
-#set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { usrClrIn[0] }]; #IO_L24N_T3_RS0_15 Sch=sw[0]
-#set_property -dict { PACKAGE_PIN L16   IOSTANDARD LVCMOS33 } [get_ports { usrClrIn[1] }]; #IO_L3N_T0_DQS_EMCCLK_14 Sch=sw[1]
-#set_property -dict { PACKAGE_PIN M13   IOSTANDARD LVCMOS33 } [get_ports { usrClrIn[2] }]; #IO_L6N_T0_D08_VREF_14 Sch=sw[2]
-#set_property -dict { PACKAGE_PIN R15   IOSTANDARD LVCMOS33 } [get_ports { usrClrIn[3] }]; #IO_L13N_T2_MRCC_14 Sch=sw[3]
-#set_property -dict { PACKAGE_PIN R17   IOSTANDARD LVCMOS33 } [get_ports { enUsrSelIn[0] }]; #IO_L12N_T1_MRCC_14 Sch=sw[4]
-#set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports { enUsrSelIn[1] }]; #IO_L7N_T1_D10_14 Sch=sw[5]
+#set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[0] }]; #IO_L24N_T3_RS0_15 Sch=sw[0]
+#set_property -dict { PACKAGE_PIN L16   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[1] }]; #IO_L3N_T0_DQS_EMCCLK_14 Sch=sw[1]
+#set_property -dict { PACKAGE_PIN M13   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[2] }]; #IO_L6N_T0_D08_VREF_14 Sch=sw[2]
+#set_property -dict { PACKAGE_PIN R15   IOSTANDARD LVCMOS33 } [get_ports { vgaRedIn[3] }]; #IO_L13N_T2_MRCC_14 Sch=sw[3]
+#set_property -dict { PACKAGE_PIN R17   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[0] }]; #IO_L12N_T1_MRCC_14 Sch=sw[4]
+#set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[1] }]; #IO_L7N_T1_D10_14 Sch=sw[5]
 #set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[2] }]; #IO_L17N_T2_A13_D29_14 Sch=sw[6]
 #set_property -dict { PACKAGE_PIN R13   IOSTANDARD LVCMOS33 } [get_ports { vgaBlueIn[3] }]; #IO_L5N_T0_D07_14 Sch=sw[7]
 #set_property -dict { PACKAGE_PIN T8    IOSTANDARD LVCMOS18 } [get_ports { vgaGreenIn[0] }]; #IO_L24N_T3_34 Sch=sw[8]
@@ -38,13 +25,13 @@ set_property -dict { PACKAGE_PIN T13   IOSTANDARD LVCMOS33 } [get_ports { vgaGre
 #set_property -dict { PACKAGE_PIN H6    IOSTANDARD LVCMOS33 } [get_ports { txDataIn[4] }]; #IO_L24P_T3_35 Sch=sw[12]
 #set_property -dict { PACKAGE_PIN U12   IOSTANDARD LVCMOS33 } [get_ports { txDataIn[5] }]; #IO_L20P_T3_A08_D24_14 Sch=sw[13]
 #set_property -dict { PACKAGE_PIN U11   IOSTANDARD LVCMOS33 } [get_ports { txDataIn[6] }]; #IO_L19N_T3_A09_D25_VREF_14 Sch=sw[14]
-set_property -dict { PACKAGE_PIN V10   IOSTANDARD LVCMOS33 } [get_ports { usrSelIn }]; #IO_L21P_T3_DQS_14 Sch=sw[15]
+#set_property -dict { PACKAGE_PIN V10   IOSTANDARD LVCMOS33 } [get_ports { txDataIn[7] }]; #IO_L21P_T3_DQS_14 Sch=sw[15]
 
 
 ## LEDs
 
-set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { testLedOut[0]}]; #IO_L18P_T2_A24_15 Sch=led[0]
-set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { testLedOut[1] }]; #IO_L24P_T3_RS1_15 Sch=led[1]
+#set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { ledOut[0] }]; #IO_L18P_T2_A24_15 Sch=led[0]
+#set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { ledOut[1] }]; #IO_L24P_T3_RS1_15 Sch=led[1]
 #set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS33 } [get_ports { ledOut[2] }]; #IO_L17N_T2_A25_15 Sch=led[2]
 #set_property -dict { PACKAGE_PIN N14   IOSTANDARD LVCMOS33 } [get_ports { ledOut[3] }]; #IO_L8P_T1_D11_14 Sch=led[3]
 #set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports { LED[4] }]; #IO_L7P_T1_D09_14 Sch=led[4]
@@ -264,3 +251,54 @@ set_property -dict { PACKAGE_PIN B12   IOSTANDARD LVCMOS33 } [get_ports { vSyncP
 #set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { QSPI_DQ[2] }]; #IO_L2P_T0_D02_14 Sch=qspi_dq[2]
 #set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { QSPI_DQ[3] }]; #IO_L2N_T0_D03_14 Sch=qspi_dq[3]
 #set_property -dict { PACKAGE_PIN L13   IOSTANDARD LVCMOS33 } [get_ports { QSPI_CSN }]; #IO_L6P_T0_FCS_B_14 Sch=qspi_csn
+
+create_debug_core u_ila_0 ila
+set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
+set_property ALL_PROBE_SAME_MU_CNT 4 [get_debug_cores u_ila_0]
+set_property C_ADV_TRIGGER true [get_debug_cores u_ila_0]
+set_property C_DATA_DEPTH 65536 [get_debug_cores u_ila_0]
+set_property C_EN_STRG_QUAL true [get_debug_cores u_ila_0]
+set_property C_INPUT_PIPE_STAGES 2 [get_debug_cores u_ila_0]
+set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
+set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
+set_property port_width 1 [get_debug_ports u_ila_0/clk]
+connect_debug_port u_ila_0/clk [get_nets [list sysClkIn_IBUF_BUFG]]
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
+set_property port_width 9 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {vgaDriverInst/vSyncCntrR[0]} {vgaDriverInst/vSyncCntrR[1]} {vgaDriverInst/vSyncCntrR[2]} {vgaDriverInst/vSyncCntrR[3]} {vgaDriverInst/vSyncCntrR[4]} {vgaDriverInst/vSyncCntrR[5]} {vgaDriverInst/vSyncCntrR[7]} {vgaDriverInst/vSyncCntrR[8]} {vgaDriverInst/vSyncCntrR[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
+set_property port_width 8 [get_debug_ports u_ila_0/probe1]
+connect_debug_port u_ila_0/probe1 [get_nets [list {vgaDriverInst/hSyncCntrR[0]} {vgaDriverInst/hSyncCntrR[1]} {vgaDriverInst/hSyncCntrR[2]} {vgaDriverInst/hSyncCntrR[4]} {vgaDriverInst/hSyncCntrR[5]} {vgaDriverInst/hSyncCntrR[6]} {vgaDriverInst/hSyncCntrR[8]} {vgaDriverInst/hSyncCntrR[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
+set_property port_width 10 [get_debug_ports u_ila_0/probe2]
+connect_debug_port u_ila_0/probe2 [get_nets [list {vgaDriverInst/yPxle[0]} {vgaDriverInst/yPxle[1]} {vgaDriverInst/yPxle[2]} {vgaDriverInst/yPxle[3]} {vgaDriverInst/yPxle[4]} {vgaDriverInst/yPxle[5]} {vgaDriverInst/yPxle[6]} {vgaDriverInst/yPxle[7]} {vgaDriverInst/yPxle[8]} {vgaDriverInst/yPxle[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
+set_property port_width 10 [get_debug_ports u_ila_0/probe3]
+connect_debug_port u_ila_0/probe3 [get_nets [list {vgaDriverInst/xPixelCntrR[0]} {vgaDriverInst/xPixelCntrR[1]} {vgaDriverInst/xPixelCntrR[2]} {vgaDriverInst/xPixelCntrR[3]} {vgaDriverInst/xPixelCntrR[4]} {vgaDriverInst/xPixelCntrR[5]} {vgaDriverInst/xPixelCntrR[6]} {vgaDriverInst/xPixelCntrR[7]} {vgaDriverInst/xPixelCntrR[8]} {vgaDriverInst/xPixelCntrR[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe4]
+set_property port_width 10 [get_debug_ports u_ila_0/probe4]
+connect_debug_port u_ila_0/probe4 [get_nets [list {vgaDriverInst/xPxle[0]} {vgaDriverInst/xPxle[1]} {vgaDriverInst/xPxle[2]} {vgaDriverInst/xPxle[3]} {vgaDriverInst/xPxle[4]} {vgaDriverInst/xPxle[5]} {vgaDriverInst/xPxle[6]} {vgaDriverInst/xPxle[7]} {vgaDriverInst/xPxle[8]} {vgaDriverInst/xPxle[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe5]
+set_property port_width 10 [get_debug_ports u_ila_0/probe5]
+connect_debug_port u_ila_0/probe5 [get_nets [list {vgaDriverInst/yPixelCntrR[0]} {vgaDriverInst/yPixelCntrR[1]} {vgaDriverInst/yPixelCntrR[2]} {vgaDriverInst/yPixelCntrR[3]} {vgaDriverInst/yPixelCntrR[4]} {vgaDriverInst/yPixelCntrR[5]} {vgaDriverInst/yPixelCntrR[6]} {vgaDriverInst/yPixelCntrR[7]} {vgaDriverInst/yPixelCntrR[8]} {vgaDriverInst/yPixelCntrR[9]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe6]
+set_property port_width 1 [get_debug_ports u_ila_0/probe6]
+connect_debug_port u_ila_0/probe6 [get_nets [list vgaDriverInst/pixelClkEn]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe7]
+set_property port_width 1 [get_debug_ports u_ila_0/probe7]
+connect_debug_port u_ila_0/probe7 [get_nets [list hSyncPulseOut_OBUF]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe8]
+set_property port_width 1 [get_debug_ports u_ila_0/probe8]
+connect_debug_port u_ila_0/probe8 [get_nets [list vSyncPulseOut_OBUF]]
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets sysClkIn_IBUF_BUFG]

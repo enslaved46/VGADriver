@@ -5,7 +5,7 @@ library ieee;
 library std;
   use std.textio.all;
 
-entity vgaDriver is
+entity vgaSync is
   generic (
     CLK_FREQ        : real     := 100.0e6
   );
@@ -17,10 +17,10 @@ entity vgaDriver is
     yPxleOut       : out  std_logic_vector(9 downto 0);
     vSyncPulseOut  : out  std_logic;
     hSyncPulseOut  : out  std_logic);
-end entity vgaDriver;
+end entity vgaSync;
 
 --bp-va-sp-fp
-architecture rtl of vgaDriver is 
+architecture rtl of vgaSync is 
   constant HORIZONTAL_WHOLE_LINE   : natural := 800;
   constant HORIZONTAL_BACK_PORCH   : natural := 48;
   constant HORIZONTAL_VISIBLE_AREA : natural := 640;
@@ -33,8 +33,10 @@ architecture rtl of vgaDriver is
   constant VERTICAL_FRONT_PORCH    : natural := 10;
   constant VERTICAL_SYNC_PULSE     : natural := 2;
 
+  constant DEBUG : boolean := FALSE;
+
   signal   enVgaR                  : std_logic;
-  signal   pixelClkEn              : std_logic;
+  signal   pixelClkEn, pixelClkEn0, pixelClkEn1              : std_logic;
  
   alias    H_W_L is HORIZONTAL_WHOLE_LINE;
   alias    H_B_P is HORIZONTAL_BACK_PORCH;
@@ -77,30 +79,40 @@ architecture rtl of vgaDriver is
   signal  displayCntrR     : unsigned(3 downto 0);
   signal  vSyncCntrEn : std_logic;
 
+  signal ilaProbe : std_logic_vector ( 63 downto 0 );
+
   constant MAX_H_SYNC_ON   : natural := H_B_P + H_V_A + H_F_P - 1;
   constant MAX_V_SYNC_ON   : natural := V_B_P + V_V_A + V_F_P - 1;
 
-begin
-   vSyncPulseOut <= vSyncPulseR;
-   hSyncPulseOut <= hSyncPulseR;
-   xPxleOut <= std_logic_vector(xPixelCntrR);
-   yPxleOut <= std_logic_vector(yPixelCntrR);
+  signal tstCntr       :   unsigned (9 downto 0);
 
- -----------------------------------
- -- create 25 Mhz Clk, could use FF
- -----------------------------------
-  get25MhzClk : entity work.pulseGen(rtl)
-    generic map(
-      FREQUENCY_REQ   => integer(25.0e6),
-      CLK_FREQ        => CLK_FREQ,
-      SAMPLING_RATE   => 1)
-    port map (
-      sysClkIn        => sysClkIn,
-      sysRstIn        => sysRstIn,
-      enCntrIn        => '1',
-      pulseOut        => pixelClkEn);
+begin
+  -- output proc
+  vSyncPulseOut <= vSyncPulseR;
+  hSyncPulseOut <= hSyncPulseR;
  
- -----------------------------------
+  displayEnOut  <= displayEnR;
+  xPxleOut <= std_logic_vector(xPixelCntrR);
+  yPxleOut <= std_logic_vector(yPixelCntrR);
+
+--  tstCntr <=  tstCntr  + 1  when (rising_edge (sysClkIn) and ((hSyncPulseR and pixelClkEn) = '1')) else (others => '0') when sysRstIn /= '1' or  hSyncPulseR = '0' ;
+ 
+  -- testCntrProc : process(sysClkIn)
+  -- begin
+  --   if(rising_edge(sysClkIn)) then
+  --     if(sysRstIn /= '1')  then
+  --       tstCntr <= 0; --(others => '0');
+  --     else
+  --       if   (hSyncPulseR = '1') then
+  --        tstCntr <=  tstCntr  + 1;
+  --       else
+  --         tstCntr <=  0;
+  --       end if;
+  --     end if;
+  --   end if;
+  -- end process testCntrProc;
+ 
+ ---------------------------------------
  -- H Sync Cntr
  -----------------------------------
   hSyncCntrProc : process(sysClkIn)
@@ -110,10 +122,10 @@ begin
         hSyncCntrR <= (others => '0');
       else
         if(pixelClkEn = '1') then
-          if(hSyncCntrR = to_unsigned(H_W_L -1, hSyncCntrR'length)) then
+          if(hSyncCntrR = to_unsigned(H_W_L - 1, hSyncCntrR'length)) then
             hSyncCntrR <= (others => '0');
           else 
-            hSyncCntrR <= hSyncCntrR +1;
+            hSyncCntrR <= hSyncCntrR + 1;
           end if;
         end if;
       end if;
@@ -129,7 +141,19 @@ begin
  ----------------------------------------------------------
  -- Turn on the H SYN Signal until Max Threshold is reached
  ----------------------------------------------------------
-  hSyncPulseR <= '1' when (hSyncCntrR < MAX_H_SYNC_ON) else '0';
+ --  hSyncPulseR <= '1' when (hSyncCntrR <= MAX_H_SYNC_ON) else '0' when sysRstIn /= '1' ;
+  hSyncPulseProc : process(sysClkIn)
+  begin
+    if( rising_edge(sysClkIn)) then
+      if(sysRstIn /= '1') then
+        hSyncPulseR <=  '1' ;
+      elsif (hSyncCntrR <= MAX_H_SYNC_ON) then
+        hSyncPulseR <=  '1' ;
+      else
+        hSyncPulseR <=  '0' ;
+      end if;
+    end if;
+  end process hSyncPulseProc;
 
 -- hsync Timing, transformed
 --  0       95 96------------------------799--0 
@@ -142,6 +166,8 @@ begin
   -- Enable Vsync cntr when H Sync Max Cnt is reached
   ----------------------------------------------------------
   vSyncCntrEn <= '1' when (hSyncCntrR = to_unsigned(H_W_L -1, hSyncCntrR'length)) else '0';
+
+
 
   -----------------------------------
   -- V Sync Cntr Process
@@ -172,26 +198,22 @@ begin
   ----------------------------------------------------------
   -- Turn on the V SYNC Signal until Max Threshold is reached
   ----------------------------------------------------------
-  vSyncPulseR <= '1' when (hSyncCntrR < MAX_V_SYNC_ON) else '0';
+  -- vSyncPulseR <= '1' when (hSyncCntrR < MAX_V_SYNC_ON) else '0';
 
-  -----------------------------------
-  -- track display area in the screen, cycle delay
-  -----------------------------------
- -- vgaDispayProc : process(sysClkIn)
- -- begin
- --   if( rising_edge(sysClkIn)) then
- --     if(sysRstIn /= '1') then
- --       displayEnR <=  '0';
- --     elsif (pixelClkEn = '1') then
- --       if((vSyncCntrR > (to_unsigned(V_B_P - 1, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A - 1 , vSyncCntrR'length)) and
- --          (hSyncCntrR > (to_unsigned(H_B_P - 1, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A - 1 , vSyncCntrR'length))) then
- --         displayEnR <=  '1'; 
- --       else 
---          displayEnR <=  '0';
- --       end if;
- --     end if;
- --   end if;
- -- end process vgaDispayProc;
+  vSyncPulseProc : process(sysClkIn)
+  begin
+    if( rising_edge(sysClkIn)) then
+      if(sysRstIn /= '1') then
+        vSyncPulseR <=  '1' ;
+      elsif (vSyncCntrR < MAX_V_SYNC_ON) then
+        vSyncPulseR <=  '1' ;
+      else
+        vSyncPulseR <=  '0' ;
+      end if;
+    end if;
+  end process vSyncPulseProc;
+
+
 
   -----------------------------------
   -- track display area in the screen, cycle delay
@@ -199,12 +221,32 @@ begin
   displayEnR <=  '1' when ((vSyncCntrR > (to_unsigned(V_B_P - 1, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A - 1 , vSyncCntrR'length)) and 
 		           (hSyncCntrR > (to_unsigned(H_B_P - 1, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A - 1 , vSyncCntrR'length))) else 
                  '0';
-
-  -- synopsys translate_off
+-- synthesis translate_off
+-- synopsys translate_off
 --  process(sysRstIn, displayEnR, hSyncPulseR, vSyncPulseR, hSyncCntrR, vSyncCntrR, xPixelCntrR, yPixelCntrR)
-  process(hSyncCntrR, vSyncCntrR)
-variable l : line;
-    begin
+  debugGen : if (DEBUG) generate
+    -----------------------------------
+  -- track display area in the screen, cycle delay
+  -----------------------------------
+  vgaDispayProc : process(sysClkIn)
+  begin
+    if( rising_edge(sysClkIn)) then
+      if(sysRstIn /= '1') then
+        displayEnR <=  '0';
+      elsif (pixelClkEn = '1') then
+        if((vSyncCntrR > (to_unsigned(V_B_P - 1, vSyncCntrR'length))) and (vSyncCntrR < to_unsigned(V_B_P + V_V_A - 1 , vSyncCntrR'length)) and
+           (hSyncCntrR > (to_unsigned(H_B_P - 1, hSyncCntrR'length))) and (hSyncCntrR < to_unsigned(H_B_P + H_V_A - 1 , vSyncCntrR'length))) then
+          displayEnR <=  '1'; 
+        else 
+         displayEnR <=  '0';
+        end if;
+      end if;
+    end if;
+  end process vgaDispayProc;
+
+    printPorc : process(hSyncCntrR, vSyncCntrR)
+      variable l : line;
+      begin
      -- write (l, String'("Hello world!"));v
      -- if(displayEnR = '1') then
      -- write (l, String'("RST IN : "));
@@ -220,77 +262,109 @@ variable l : line;
       write (l, String'("        "));
       
       write (l, String'("H Sync Pulse : "));
-      write(l, std_logic'image(hSyncPulseOut));
+      write(l, std_logic'image(hSyncPulseR));
       write (l, String'("        "));
 
-      write (l, String'("V Sync Cnt En : "));
-      write(l, std_logic'image(vSyncCntrEn));
-      write (l, String'("        "));
+      write (l, String'(" H sync En Tst Cntr : "));
+      write(l, to_integer(tstCntr));
+     
+    --  write (l, String'("V Sync Cnt En : "));
+    --  write(l, std_logic'image(vSyncCntrEn));
+    --  write (l, String'("        "));
 
 
       --write (l, String'("MAX V_Sync On: "));
      -- write(l, integer'image(MAX_V_SYNC_ON));
       --write (l, String'("        "));
      
-      write(l, String'("V sync Cntr: "));
-      write(l, to_integer(vSyncCntrR));
-      write (l, String'("        "));
-      write(l, String'("V Sync Pulse : "));
-      write(l, std_logic'image(vSyncPulseR));
-      write (l, String'("        "));
+    --  write(l, String'("V sync Cntr: "));
+    --  write(l, to_integer(vSyncCntrR));
+    --  write (l, String'("        "));
+    --  write(l, String'("V Sync Pulse : "));
+    --  write(l, std_logic'image(vSyncPulseR));
+    --  write (l, String'("        "));
       
-      write(l, String'("Display En : "));
-      write(l, std_logic'image(displayEnR));
-      write (l, String'("        "));     
+     -- write(l, String'("Display En : "));
+     -- write(l, std_logic'image(displayEnR));
+     -- write (l, String'("        "));     
 
-      write(l, String'("X Pxle : "));
-      write(l, to_integer(xPixelCntrR));
-      write (l, String'("        "));
-      write(l, String'("Y Pxle : "));
-      write(l, to_integer(yPixelCntrR));
+    --  write(l, String'("X Pxle : "));
+    --  write(l, to_integer(xPixelCntrR));
+    --  write (l, String'("        "));
+    --  write(l, String'("Y Pxle : "));
+    --  write(l, to_integer(yPixelCntrR));
     
       writeline (output, l);
-    -- end if;
-    -- wait;
-   end process;
--- synopsys translate_on
+     -- end if;
+     -- wait;
+    end process printPorc;
 
+-- ila_gen : if (FALSE) generate
+--   probeWires : entity work.ila_probe_wrapper
+--   port map ( 
+--     clkIn => sysClkIn,
+--     probe0In => ilaProbe);
+--   
+--   ilaProbe <= displayEnR &  vSyncPulseR & hSyncPulseR  &
+--               std_logic_vector(unsigned(vSyncCntrR)) & std_logic_vector(unsigned(hSyncCntrR)) &
+--               std_logic_vector(unsigned(xPixelCntrR)) &  std_logic_vector(unsigned(yPixelCntrR))
+--                & hSyncPulseR & vSyncCntrEn & "0000000000000000000";
+--  end generate ila_gen;
+  end generate debugGen;
+-- synopsys translate_on
+-- synthesis translate_on
  -----------------------------------
  --
  -----------------------------------
- pixelTrakrProc : process(sysRstIn, displayEnR, pixelClkEn)
-  begin
---    if( rising_edge(sysClkIn)) then
-      if(sysRstIn /= '1') then
-        xPixelCntrR  <= (others => '0');
-        yPixelCntrR  <= (others => '0');
-        displayCntrR <= (others => '0');
-      elsif(displayEnR = '1' and pixelClkEn = '1') then
-        if(xPixelCntrR = to_unsigned(H_V_A - 1, xPixelCntrR'length)) then
-          yPixelCntrR <= yPixelCntrR + 1;
-	  xPixelCntrR <= (others => '0');
-        elsif(yPixelCntrR = to_unsigned(V_V_A - 1, yPixelCntrR'length )) then
-          yPixelCntrR <= (others => '0');
-          --  displayCntrR<= displayCntrR + 1;
-        else 
-          xPixelCntrR <= xPixelCntrR + 1;
-        end if;
-     end if;
---    end if;
-  end process pixelTrakrProc;
+--  pixelTrakrProc : process(sysRstIn, displayEnR, pixelClkEn, xPixelCntrR, yPixelCntrR) 
+--   begin
+-- --    if( rising_edge(sysClkIn)) then
+--       if(sysRstIn /= '1') then
+--         xPixelCntrR  <= (others => '0');
+--         yPixelCntrR  <= (others => '0');
+--         displayCntrR <= (others => '0');
+--       elsif(displayEnR = '1' and pixelClkEn = '1') then
+--         if(xPixelCntrR = to_unsigned(H_V_A - 1, xPixelCntrR'length)) then
+-- 	        xPixelCntrR <= (others => '0');
+--           yPixelCntrR <= yPixelCntrR + 1;
+--         else
+--           xPixelCntrR <= xPixelCntrR + 1;
+--         end if;
+--         if(yPixelCntrR = to_unsigned(V_V_A - 1, yPixelCntrR'length )) then
+--           yPixelCntrR <= (others => '0');
+--           --  displayCntrR<= displayCntrR + 1;
+--         end if;
+--      end if;
+-- --    end if;
+--   end process pixelTrakrProc;
 
------------------------------------
- -- create 25 Mhz Clk, could use FF
- -----------------------------------
---  get1Sclk : entity work.pulseGen(rtl)
---    generic map(
---      FREQUENCY_REQ   => integer(1.0e),
---      CLK_FREQ        => CLK_FREQ,
---      SAMPLING_RATE   => 1)
---    port map (
---      sysClkIn        => sysClkIn,
---      sysRstIn        => sysRstIn,
---      enCntrIn        => '1',
---      pulseOut        => oneSecClkEn);
+ get25MhzClk : entity work.pulseGen(rtl)
+    generic map(
+      FREQUENCY_REQ   => integer(25.0e6),
+      CLK_FREQ        => CLK_FREQ,
+      SAMPLING_RATE   => 1)
+    port map (
+      sysClkIn        => sysClkIn,
+      sysRstIn        => sysRstIn,
+      enCntrIn        => '1',
+      pulseOut        => pixelClkEn);
+
+ 
+  -- get25MhzClk  : process(sysClkIn)
+  -- begin
+  --   if(rising_edge(sysClkIn)) then
+  --     if(sysRstIn /= '1') then
+  --       pixelClkEn0 <= '0';
+  --       pixelClkEn  <= '0';
+  --       pixelClkEn1 <= '0';
+  --     else 
+  --       pixelClkEn0 <= not pixelClkEn0;
+  --       pixelClkEn  <= pixelClkEn0;
+-- 
+--   --    end if;
+--   --   end if;
+  -- end process get25MhzClk;
+
+
 
 end architecture rtl;
