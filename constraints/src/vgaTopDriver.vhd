@@ -15,7 +15,7 @@ entity vgaTopDriver is
     usrSelIn      : in  std_logic;
    -- usrClrIn      : in  std_logic_vector(3 downto 0);
     -- synthesis translate_off
-    displayEnOut  : out  std_logic;
+  --  displayEnOut  : out  std_logic;
     -- synthesis translate_on
     testLedOut    : out  std_logic_vector(1 downto 0);
     vgaRedOut     : out  std_logic_vector(3 downto 0);
@@ -35,73 +35,66 @@ architecture rtl of vgaTopDriver is
  signal vgaBlue    : std_logic_vector(3 downto 0);
  signal vgaGreen   : std_logic_vector(3 downto 0);
  signal testLedCntrlR : std_logic;
- signal oneSecClk     : std_logic;
+ signal oneSecClk : std_logic;
 begin
   vSyncPulseOut    <= vSyncPulse;
   hSyncPulseOut    <= hSyncPulse;
-
   -- vgaRedOut   <= "1111" when usrSelIn = "00" else (others => '0'); --vgaRed;
   -- vgaBlueOut  <= "1111" when usrSelIn = "01" else (others => '0'); --vgaBlue;
   -- vgaGreenOut <= "1111" when usrSelIn = "10" else (others => '0'); --vgaGreen;
-  
-  vgaRedOut     <= vgaRedIn   when (usrSelIn and displaynEn) = '1' else vgaRed  ;--  when displaynEn = '1' else X"0";
-  vgaBlueOut    <= vgaBlueIn  when (usrSelIn and displaynEn) = '1' else vgaBlue ;--  when displaynEn = '1' else X"0";
-  vgaGreenOut   <= vgaGreenIn when (usrSelIn and displaynEn) = '1' else vgaGreen;--  when displaynEn = '1' else X"0";
+  vgaRedOut     <= vgaRedIn   when (usrSelIn and displaynEn ) = '1' else X"0";
+  vgaBlueOut    <= vgaBlueIn  when (usrSelIn and displaynEn )= '1' else X"0";
+  vgaGreenOut   <= vgaGreenIn when (usrSelIn and displaynEn )= '1' else X"0";
   
   testLedOut(0) <= '1' when (testLedCntrlR = '1') else '0';
-  testLedOut(1) <= oneSecClk when rising_edge (sysClkIn) ;
-  
-  -- synthesis translate_off
-  displayEnOut <= displaynEn;
-  -- synthesis translate_on
-  
-  testLedOutProc : process (sysClkIn)
-  begin
-    if(rising_edge(sysClkIn)) then
-      if(sysRstIn /= '1') then
-         testLedCntrlR <= '0';
-        else
-          testLedCntrlR <= '1';
-        end if;
-      end if;
-  end process;
+  testLedOut(1) <= not oneSecClk when rising_edge (sysClkIn) ;
 
-  vgaDriverInst : entity work.vgaSync
-    generic map (
-      CLK_FREQ       => SYS_CLK_FREQ)
-    port map (
-      sysClkIn       => sysClkIn,
-      sysRstIn       => sysRstIn,
-      displayEnOut   => displaynEn,
-      xPxleOut       => xPxle,
-      yPxleOut       => yPxle,
-      vSyncPulseOut  => vSyncPulse,
-      hSyncPulseOut  => hSyncPulse);
+testLedOutProc : process (sysClkIn)
+begin
+  if(rising_edge(sysClkIn)) then
+    if(sysRstIn /= '1') then
+       testLedCntrlR <= '0';
+     else
+       testLedCntrlR <= '1';
+     end if;
+   end if;
+end process;
+
+vgaDriverInst : entity work.vgaSync
+  generic map (
+    CLK_FREQ       => SYS_CLK_FREQ)
+  port map(
+    sysClkIn       => sysClkIn,
+    sysRstIn       => sysRstIn,
+    displayEnOut   => displaynEn,
+    xPxleOut       => xPxle,
+    yPxleOut       => yPxle,
+    vSyncPulseOut  => vSyncPulse,
+    hSyncPulseOut  => hSyncPulse);
 
   pxleGenInst : entity work.pxleGen
-    port map (
+    port map(
       sysClkIn         => sysClkIn,
       sysRstIn         => sysRstIn,
       xPxleIn          => xPxle,
-      yPxleIn          => yPxle,
-      enDispalyIn      => displaynEn,
+     -- yPxleIn          => yPxle,
      -- vSyncPulseIn     => vSyncPulse,
-     --  hSyncPulseIn     => hSyncPulse,
+    --  hSyncPulseIn     => hSyncPulse,
       vgaRedOut        => vgaRed,
       vgaBlueOut       => vgaBlue,
       vgaGreenOut      => vgaGreen);
      -- vSyncPulseOut    => vSyncPulse,
      -- hSyncPulseOut    => hSyncPulseOut);
- 
-  get1SecClk : entity work.pulseGen(rtl)
-    generic map(
-      FREQUENCY_REQ   => integer(1.0),
-      CLK_FREQ        => SYS_CLK_FREQ,
-      SAMPLING_RATE   => 1)
-    port map (
-      sysClkIn        => sysClkIn,
-      sysRstIn        => sysRstIn,
-      enCntrIn        => '1',
-      pulseOut        => oneSecClk);
-
+-- 
+--   get1SecClk : entity work.pulseGen(rtl)
+--     generic map(
+--       FREQUENCY_REQ   => integer(1.0),
+--       CLK_FREQ        => SYS_CLK_FREQ,
+--       SAMPLING_RATE   => 1)
+--     port map (
+--       sysClkIn        => sysClkIn,
+--       sysRstIn        => sysRstIn,
+--       enCntrIn        => '1',
+--       pulseOut        => oneSecClk);
+-- 
 end architecture rtl;

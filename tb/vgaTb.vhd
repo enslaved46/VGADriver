@@ -56,16 +56,16 @@ begin
   tbClk     <= not tbClk after 5 ns;
   tbRst     <= '0' , '1' after 100 ns;
 
-  combineReceivedSignal <= tbVgaRedOut && tbVgaBlueOut && tbVgaGreenOut;
+  combineReceivedSignal <= tbVgaRedOut & tbVgaBlueOut & tbVgaGreenOut;
   
-  tbScreenColorGen <= W  when  combineReceivedSignal = X"000" else -- tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else
-                      G  when  combineReceivedSignal = X"00F" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
-                      B  when  combineReceivedSignal = X"0F0" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
-                      C  when  combineReceivedSignal = X"0FF" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"1" else 
-                      R  when  combineReceivedSignal = X"F00" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else 
-                      Y  when  combineReceivedSignal = X"F0F" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
-                      M  when  combineReceivedSignal = X"FF0" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
-                      BL when  combineReceivedSignal = X"FFF" ; -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" ;
+  tbScreenColorGen <= BL when  combineReceivedSignal = X"000" and tbDisplayEn = '1' else -- tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else
+                      R  when  combineReceivedSignal = X"F00" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else 
+                      B  when  combineReceivedSignal = X"00F" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
+                      G  when  combineReceivedSignal = X"0F0" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
+                      C  when  combineReceivedSignal = X"0FF" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"1" else 
+                      M  when  combineReceivedSignal = X"F0F" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
+                      Y  when  combineReceivedSignal = X"FF0" and tbDisplayEn = '1' else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
+                      W  when  combineReceivedSignal = X"FFF" ; -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" ;
 
  -- process
  --   variable l : line;

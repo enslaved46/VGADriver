@@ -11,18 +11,18 @@ package colorPackage is
   
   type testPatternColorRecType is record
     r : colorIntensityValue;
-    b : colorIntensityValue;
     g : colorIntensityValue;
+    b : colorIntensityValue;
   end record;
 
-  constant WHITE   : testPatternColorRecType:= ("0000", "0000","0000");
-  constant GREEN   : testPatternColorRecType:= ("0000", "0000","1111");
-  constant BLUE    : testPatternColorRecType:= ("0000", "1111","0000");
+  constant BLACK   : testPatternColorRecType:= ("0000", "0000","0000");
+  constant BLUE    : testPatternColorRecType:= ("0000", "0000","1111");
+  constant GREEN   : testPatternColorRecType:= ("0000", "1111","0000");
   constant CYAN    : testPatternColorRecType:= ("0000", "1111","1111");
   constant RED     : testPatternColorRecType:= ("1111", "0000","0000");
-  constant YELLOW  : testPatternColorRecType:= ("1111", "0000","1111");
-  constant MAGENTA : testPatternColorRecType:= ("1111", "1111","0000");
-  constant BLACK   : testPatternColorRecType:= ("1111", "1111","1111");
+  constant MAGENTA : testPatternColorRecType:= ("1111", "0000","1111");
+  constant YELLOW  : testPatternColorRecType:= ("1111", "1111","0000");
+  constant WHITE   : testPatternColorRecType:= ("1111", "1111","1111");
 end package;
 
 package body colorPackage is
