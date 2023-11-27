@@ -39,18 +39,21 @@ architecture rtl of vgaTopDriver is
 begin
   vSyncPulseOut    <= vSyncPulse;
   hSyncPulseOut    <= hSyncPulse;
+
   -- vgaRedOut   <= "1111" when usrSelIn = "00" else (others => '0'); --vgaRed;
   -- vgaBlueOut  <= "1111" when usrSelIn = "01" else (others => '0'); --vgaBlue;
   -- vgaGreenOut <= "1111" when usrSelIn = "10" else (others => '0'); --vgaGreen;
+  
   vgaRedOut     <= vgaRedIn   when (usrSelIn and displaynEn) = '1' else vgaRed  ;--  when displaynEn = '1' else X"0";
   vgaBlueOut    <= vgaBlueIn  when (usrSelIn and displaynEn) = '1' else vgaBlue ;--  when displaynEn = '1' else X"0";
   vgaGreenOut   <= vgaGreenIn when (usrSelIn and displaynEn) = '1' else vgaGreen;--  when displaynEn = '1' else X"0";
   
   testLedOut(0) <= '1' when (testLedCntrlR = '1') else '0';
   testLedOut(1) <= not oneSecClk when rising_edge (sysClkIn) ;
-    -- synthesis translate_off
+  
+  -- synthesis translate_off
   displayEnOut <= displaynEn;
-    -- synthesis translate_on
+  -- synthesis translate_on
   
   testLedOutProc : process (sysClkIn)
   begin
@@ -63,17 +66,17 @@ begin
       end if;
   end process;
 
-vgaDriverInst : entity work.vgaSync
-  generic map (
-    CLK_FREQ       => SYS_CLK_FREQ)
-  port map (
-    sysClkIn       => sysClkIn,
-    sysRstIn       => sysRstIn,
-    displayEnOut   => displaynEn,
-    xPxleOut       => xPxle,
-    yPxleOut       => yPxle,
-    vSyncPulseOut  => vSyncPulse,
-    hSyncPulseOut  => hSyncPulse);
+  vgaDriverInst : entity work.vgaSync
+    generic map (
+      CLK_FREQ       => SYS_CLK_FREQ)
+    port map (
+      sysClkIn       => sysClkIn,
+      sysRstIn       => sysRstIn,
+      displayEnOut   => displaynEn,
+      xPxleOut       => xPxle,
+      yPxleOut       => yPxle,
+      vSyncPulseOut  => vSyncPulse,
+      hSyncPulseOut  => hSyncPulse);
 
   pxleGenInst : entity work.pxleGen
     port map (
@@ -89,7 +92,7 @@ vgaDriverInst : entity work.vgaSync
       vgaGreenOut      => vgaGreen);
      -- vSyncPulseOut    => vSyncPulse,
      -- hSyncPulseOut    => hSyncPulseOut);
--- 
+ 
   get1SecClk : entity work.pulseGen(rtl)
     generic map(
       FREQUENCY_REQ   => integer(1.0),
@@ -100,5 +103,5 @@ vgaDriverInst : entity work.vgaSync
       sysRstIn        => sysRstIn,
       enCntrIn        => '1',
       pulseOut        => oneSecClk);
--- 
+
 end architecture rtl;
