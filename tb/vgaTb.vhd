@@ -28,6 +28,10 @@ architecture behav of vgaTb is
   signal tboneSecClk : std_logic; 
   -- signal tbVsyncPulseOut : std_logic ;
   -- signal tbHsyncPulseOut   : std_logic ;
+  type testPatternColorType is (R, B, G, W, BL, M, C, Y);
+  signal tbScreenColorGen    : testPatternColorType;
+
+  signal combineReceivedSignal  : std_logic_vector(11 downto 0);
 begin
  
   UUT : entity work.vgaTopDriver(rtl)
@@ -36,10 +40,13 @@ begin
   port map(
     sysClkIn      => tbClk,
     sysRstIn      => tbRst,
-    usrSelIn      => "11",
-    usrClrIn      => "0000",
+    usrSelIn      => '0',-- "11",
+    vgaRedIn      => "0000",
+    vgaBlueIn     => "0000",
+    vgaGreenIn    => "0000",
+  --  usrClrIn      => "0000",
     testLedOut    => testLed,
-   -- displayEnOut  => tbdisplayEn,
+    displayEnOut  => tbdisplayEn,
     vgaRedOut     => tbVgaRedOut,
     vgaBlueOut    => tbVgaBlueOut,
     vgaGreenOut   => tbVgaGreenOut,
@@ -48,6 +55,17 @@ begin
 
   tbClk     <= not tbClk after 5 ns;
   tbRst     <= '0' , '1' after 100 ns;
+
+  combineReceivedSignal <= tbVgaRedOut && tbVgaBlueOut && tbVgaGreenOut;
+  
+  tbScreenColorGen <= W  when  combineReceivedSignal = X"000" else -- tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else
+                      G  when  combineReceivedSignal = X"00F" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
+                      B  when  combineReceivedSignal = X"0F0" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
+                      C  when  combineReceivedSignal = X"0FF" else -- when tbVgaRedOut = x"0" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"1" else 
+                      R  when  combineReceivedSignal = X"F00" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"0" else 
+                      Y  when  combineReceivedSignal = X"F0F" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"0" and tbVgaGreenOut = x"1" else 
+                      M  when  combineReceivedSignal = X"FF0" else -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" else 
+                      BL when  combineReceivedSignal = X"FFF" ; -- when tbVgaRedOut = x"1" and  tbVgaBlueOut = x"1" and tbVgaGreenOut = x"0" ;
 
  -- process
  --   variable l : line;
@@ -64,15 +82,16 @@ begin
        --writeline (output, l);
    --end process;
 
-  vga <= tbVgaGreenOut when tbdisplayEn = '1' else (others => '0');
-  tbget1SecClk : entity work.pulseGen(rtl)
-    generic map(
-      FREQUENCY_REQ   => integer(1.0),
-      CLK_FREQ        => 100.0e6,
-      SAMPLING_RATE   => 1)
-    port map (
-      sysClkIn        => tbClk,
-      sysRstIn        => tbRst,
-      enCntrIn        => '1',
-      pulseOut        => tboneSecClk);
+  vga <= tbVgaGreenOut when tbdisplayEn = '1' else x"0";
+
+  --tbget1SecClk : entity work.pulseGen(rtl)
+  --  generic map(
+  --    FREQUENCY_REQ   => integer(1.0),
+  --    CLK_FREQ        => 100.0e6,
+  --    SAMPLING_RATE   => 1)
+  --  port map (
+  --    sysClkIn        => tbClk,
+  --    sysRstIn        => tbRst,
+  --    enCntrIn        => '1',
+  --    pulseOut        => tboneSecClk);
 end architecture behav;  

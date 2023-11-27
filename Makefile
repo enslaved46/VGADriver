@@ -8,7 +8,8 @@ DEVICE := ARTRIX7
 SIM_DIR:= simDir
 BUILD_DIR = batchRun
 src=\
-	src/ila_probe/sim/ila_probe.vhd \
+	src/colorPackage.vhd \
+	xilinx_ip/ila_probe/sim/ila_probe.vhd \
         xilinx_ip/ila_probe/ila_probe_stub.vhdl \
 	src/ila_probe_wrapper.vhd \
 	src/pulseGen.vhd \
@@ -49,8 +50,9 @@ cm:
 	@$(GHDL) -e  --workdir=$(SIM_DIR) $(FLAGS) vgaTb
 
 rs:
-	$(GHDL) -r $ --workdir=$(SIM_DIR) $(FLAGS) vgaTb --wave=wave.ghw --stop-time=100ms
+	$(GHDL) -r $ --workdir=$(SIM_DIR) $(FLAGS) vgaTb --wave=wave.ghw --stop-time=20ms
 	mv wave.ghw $(SIM_DIR)
+	gtkwave  simDir/wave.ghw
 
 cs :
 	rm -rf $(SIM_DIR)

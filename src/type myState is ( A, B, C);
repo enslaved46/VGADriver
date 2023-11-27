@@ -1,0 +1,35 @@
+type myState is ( A, B, C);
+signal stateR : myState;
+
+constant receiver : positive := 5;
+constant samplingFreq : real := ((real(receiver))* exciterFreq);
+constatn maxClkCnt := natural := natural (ceil(1.0/sysCLkFreq)/(samplingFreq);
+constant maxcntr = natural range 0 to maxClkCnt -1;
+
+
+exciterMaxClkCnt : natural := natural ((1.0/SYS_CLK_PERIOD)/(exciterFreq*(real(number of exciterSamples));
+
+readFile package is
+constatnt dataDepth : natural := 10;
+constant dataLength: natural : 8;
+
+type myArray is array(0 to dataDepth-1) of std_logic_vector(0 to dataLength -1);
+inpure functin initFileContents( fileName : string) return myArray;
+end readFile package;
+
+package body readFile is
+
+	impure functuin initFileContents(filename : string) return myArray is
+	file myFileHangle : text opean read_mode is fileName;
+	variable linetext : line;
+	variable readArray : myArray;
+	begin
+		for i in 0 to dataDepth -1 loop
+			readline(myFileHangle, linetext);
+			hread(linetext, readArray(i));
+		end loop;
+		return readArray;
+	end function;
+end readFile;
+
+

@@ -2,6 +2,8 @@ exec mkdir -p  vivadoRun
 #xec cd vivadoRun
 
 create_project -f vivadoRun/vivProj -part xc7a100tcsg324-1
+
+read_vhdl src/colorPackage.vhd
 read_vhdl src/pulseGen.vhd
 read_vhdl src/vgaSync.vhd
 read_vhdl src/pxleGen.vhd

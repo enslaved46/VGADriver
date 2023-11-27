@@ -16,7 +16,6 @@ entity pulseGen is
 end entity pulseGen;
 
 architecture rtl of pulseGen is
-
  
   function log2Fn (x : positive) return natural is
     variable i : natural;
