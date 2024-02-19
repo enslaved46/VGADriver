@@ -1,0 +1,34 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+package my_lib is
+    package body my_lib is
+        function log2Fn(x    :    positive) return natural;
+        procedure dFF(signal : in clkIn; signal : rstIn; signal : in dIn; signal : dOut);
+    end package my_lib;
+
+    package body my_lib is
+
+        procedure dFF(signal : in clkIn; signal : in rstIn; signal : in dIn; signal : dOut) is
+        begin
+            if rising_edge(clkIn) then
+                if(rstIn) then
+                    dOut <= '0';
+                else
+                    dOut <= dIn;
+                end if;
+            end if;
+        end procedure dFF;
+
+        function log2Fn (x : positive) return natural is
+            variable i : natural;
+        begin
+            i := 0;
+            while (2**i < x) and i < 31 loop
+                i := i + 1;
+            end loop;
+            return i;
+        end function log2Fn;
+
+    end package body;

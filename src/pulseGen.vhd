@@ -1,6 +1,8 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
+library work;
+  use work.my_lib.all;
 
 entity pulseGen is
   generic (
@@ -16,21 +18,11 @@ entity pulseGen is
 end entity pulseGen;
 
 architecture rtl of pulseGen is
- 
-  function log2Fn (x : positive) return natural is
-    variable i : natural;
-   begin
-      i := 0;  
-      while (2**i < x) and i < 31 loop
-         i := i + 1;
-      end loop;
-      return i;
-   end function;
   constant MAX_CNTR      : integer := integer(CLK_FREQ)/(FREQUENCY_REQ * SAMPLING_RATE);
   signal   cntrValR      : unsigned (log2Fn(MAX_CNTR) -1 downto 0 );
   signal   cntrDnePulseR : std_logic;
   
-begin
+  begin
   pulseOut <= cntrDnePulseR;
 
   pulseGenProc : process (sysClkIn)

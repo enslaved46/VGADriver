@@ -11,12 +11,13 @@ src=\
 	src/colorPackage.vhd \
 	xilinx_ip/ila_probe/sim/ila_probe.vhd \
         xilinx_ip/ila_probe/ila_probe_stub.vhdl \
-	src/ila_probe_wrapper.vhd \
+        src/my_lib.vhd \
+        src/ila_probe_wrapper.vhd \
 	src/pulseGen.vhd \
 	src/vgaSync.vhd \
 	src/pxleGen.vhd \
         src/vgaTopDriver.vhd \
-    
+
 tb=\
 	tb/vgaTb.vhd \
 	xilinx_ip/ila_probe/sim/ila_probe.vhd \
@@ -45,7 +46,7 @@ cr: cm run
 
 cm:
 	@mkdir -p $(SIM_DIR)
-	#@cp *.vhd $(SIM_DIR)
+        #@cp *.vhd $(SIM_DIR)
 	@$(GHDL) -a  --workdir=$(SIM_DIR) --work=work $(FLAGS) $(src) $(tb)
 	@$(GHDL) -e  --workdir=$(SIM_DIR) $(FLAGS) vgaTb
 

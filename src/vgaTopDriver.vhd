@@ -2,6 +2,8 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
+library work;
+  use work.my_lib.all;
 entity vgaTopDriver is
   generic (
     SYS_CLK_FREQ : real := 100.0e6
@@ -37,8 +39,12 @@ architecture rtl of vgaTopDriver is
  signal testLedCntrlR : std_logic;
  signal oneSecClk     : std_logic;
 begin
-  vSyncPulseOut    <= vSyncPulse;
-  hSyncPulseOut    <= hSyncPulse;
+--  vSyncPulseOut    <= vSyncPulse;
+--  hSyncPulseOut    <= hSyncPulse;
+
+  DFF(sysClkIn, sysRstIn, vSyncPulse, VsyncPulseOut);
+
+  DFF(sysClkIn, sysRstIn, hSyncPulse, HsyncPulseOut);
 
   -- vgaRedOut   <= "1111" when usrSelIn = "00" else (others => '0'); --vgaRed;
   -- vgaBlueOut  <= "1111" when usrSelIn = "01" else (others => '0'); --vgaBlue;

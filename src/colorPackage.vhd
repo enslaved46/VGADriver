@@ -2,8 +2,8 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
-
 package colorPackage is 
+
   --type colorPaterrn_t is array(0  to 7) of std_logic_vector( downto 0);
   constant COLOR_RESLN : positive := 4; 
   subtype colorIntensityValue is std_logic_vector(COLOR_RESLN - 1 downto 0);
@@ -23,6 +23,7 @@ package colorPackage is
   constant MAGENTA : testPatternColorRecType:= ("1111", "0000","1111");
   constant YELLOW  : testPatternColorRecType:= ("1111", "1111","0000");
   constant WHITE   : testPatternColorRecType:= ("1111", "1111","1111");
+
 end package;
 
 package body colorPackage is

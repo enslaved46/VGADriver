@@ -8,7 +8,7 @@ read_vhdl src/pulseGen.vhd
 read_vhdl src/vgaSync.vhd
 read_vhdl src/pxleGen.vhd
 read_vhdl src/vgaTopDriver.vhd
-
+read_vhdl src/my_lib.vhd
 #read_vhdl xilinx_ip/ila_probe/synth/ila_probe.vhd
 #read_vhdl src/ila_probe/ila_probe_stub.vhdl
 #read_vhdl src/ila_probe/ila_probe_stub.vhdl
